@@ -8,8 +8,8 @@ func main(){
 var repeat bool
 repeat = true
 var answer string
-str1 := "Welcome to a second class password keeper!\nDo you want to add a password or see a password?"
-str2 := "Please enter the word 'add' to add a new password or enter 'see' to see a password\n"
+str1 := "Welcome to a second class password keeper!\nDo you want to add a password or see a password?\n"
+str2 := "Please enter the word 'add' to add a new password or enter 'see' to see a password\n or enter 'exit' to exit:\n"
 fmt.Printf(str1)
 
 	for repeat == true {
@@ -21,9 +21,13 @@ fmt.Printf(str1)
 		if answer == "see"{
 		seepass()
 		break
-		} else{
+		} 
+		if answer == "exit"{
+		break		
+		}else{
 		fmt.Printf(str2)
 		}	
+		
 	}
 
 }
