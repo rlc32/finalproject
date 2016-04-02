@@ -1,8 +1,9 @@
 package main
 import (
 	"fmt"
-	"io/ioutil"
-	/*"os"*/
+	/*"io/ioutil"*/
+	"os"
+	"time"
 	)
 func main(){
 var repeat bool
@@ -40,17 +41,18 @@ fmt.Printf(str1)
 
 func addpass(){
 	password := ""
-	fmt.Printf("please enter the password: \n")
-	fmt.Scanf("%s", &password)
-	err := ioutil.WriteFile("214/text/passwords.txt", []byte(password), 0644)
-	check(err)
-	/*f, err := os.Create("214/text/passwords")
+	productName := ""
+	fmt.Printf("please enter the name of the product that you want to store: \n")
+	fmt.Scanf("%s", &productName)
+	/*err := ioutil.WriteFile("214/text/" + productName + ".txt", []byte(password), 0644)
+	check(err)*/
+	f, err := os.Create("/Users/russclousing/214/text/ " + productName + ".txt")
 	check(err)
 	defer f.Close()
 	n1, err := f.Write([]byte(password))
 	check(err)
 	fmt.Printf("wrote %d bytes\n", n1)
-	f.Sync()*/
+	f.Sync()
 	fmt.Printf("please work like i want it to\n")
 	
 }
@@ -68,6 +70,21 @@ fmt.Printf("tell me this works as well\n")
 
 /* this checks for errors in file usage*/
 func check(e error){
-if e != nil{
-	panic(e)}
+	if e != nil{
+		panic(e)}
 }
+
+
+/* This function encrypts the password and returns the password as a encrypted string of numbers
+			Input: this funciton takes a string
+			Output: THis returns a string of numerals that is the encrypted string*/
+func encryption(password string){
+	fmt.Printf(Now())
+
+
+}
+
+
+
+
+
