@@ -1,9 +1,12 @@
 package main
 import (
 	"fmt"
-	/*"io/ioutil"*/
+	/*"io/ioutil"
+	"strings"
+	"encoding/binary"*/
 	"os"
 	"time"
+	"math/rand"
 	)
 func main(){
 var repeat bool
@@ -16,17 +19,17 @@ fmt.Printf(str1)
 	for repeat == true {
 		fmt.Scanf("%s", &answer)
 		if answer == "add"{
-		addpass()
+			addpass()
 		break
 		}
 		if answer == "see"{
-		seepass()
+			seepass()
 		break
 		} 
 		if answer == "exit"{
 		break		
 		}else{
-		fmt.Printf(str2)
+			fmt.Printf(str2)
 		}	
 		
 	}
@@ -44,16 +47,17 @@ func addpass(){
 	productName := ""
 	fmt.Printf("please enter the name of the product that you want to store: \n")
 	fmt.Scanf("%s", &productName)
-	/*err := ioutil.WriteFile("214/text/" + productName + ".txt", []byte(password), 0644)
-	check(err)*/
+	fmt.Printf("Please enter the password for %s: \n", productName)
+	fmt.Scanf("%s", &password)
+	password = encryption(password)
 	f, err := os.Create("/Users/russclousing/214/text/ " + productName + ".txt")
 	check(err)
 	defer f.Close()
+	
 	n1, err := f.Write([]byte(password))
 	check(err)
 	fmt.Printf("wrote %d bytes\n", n1)
 	f.Sync()
-	fmt.Printf("please work like i want it to\n")
 	
 }
 
@@ -78,11 +82,25 @@ func check(e error){
 /* This function encrypts the password and returns the password as a encrypted string of numbers
 			Input: this funciton takes a string
 			Output: THis returns a string of numerals that is the encrypted string*/
-func encryption(password string){
-	fmt.Printf(Now())
-
-
+			
+func encryption(password string)(password2 string){ 
+	key := time.Now().Format("20060102150405")
+	myArray := []byte(password) // convert string into []byte type
+ 	var NumArray []int = make([]int, len(password))  // create second []int type to store the converted []byte elements
+	for i := 0; i < len(myArray); i++{
+		NumArray[i] = int(myArray[i])
+	}
+	
+	
+	password2 = key
+	return password2
 }
+func getPrime()(prime1, prime2){
+	
+}
+
+
+
 
 
 
