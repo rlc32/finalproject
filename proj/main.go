@@ -5,8 +5,9 @@ import (
 	"strings"
 	"encoding/binary"*/
 	"os"
-	"time"
+	//"time"
 	"math/rand"
+	"math"
 	)
 func main(){
 var repeat bool
@@ -84,19 +85,28 @@ func check(e error){
 			Output: THis returns a string of numerals that is the encrypted string*/
 			
 func encryption(password string)(password2 string){ 
-	key := time.Now().Format("20060102150405")
+	//key := time.Now().Format("20060102150405")
 	myArray := []byte(password) // convert string into []byte type
  	var NumArray []int = make([]int, len(password))  // create second []int type to store the converted []byte elements
 	for i := 0; i < len(myArray); i++{
 		NumArray[i] = int(myArray[i])
 	}
+	p := 0
+	q := 0
+	p = getPrime(p)
+	q = getPrime(q)
+	for q == p{
+		p = getPrime(p)
+	}
+	n := p * q
+	password2 = ""
 	
-	
-	password2 = key
 	return password2
 }
-func getPrime()(prime1, prime2){
-	
+func getPrime(p int)(prime int){
+	answers := []int{19, 31, 61, 89, 107, 127} 		
+	prime = 2^(answers[rand.Intn(len(answers))]) - 1
+	return prime
 }
 
 
