@@ -8,6 +8,7 @@ import (
     "crypto/md5"
     "crypto/x509"
 	"hash"
+	"bytes"
 	"io/ioutil"
 	"encoding/pem"
 	)
@@ -62,7 +63,7 @@ func addpass(){
 	check(err)
 	fmt.Printf("wrote %d bytes\n", n1)
 	f.Sync()
-	
+
 	
 }
 
@@ -99,7 +100,7 @@ if err != nil {
     }
     block, _ = pem.Decode(pem_data)
     
-if block == nil || block.Type != "RSA PUBLIC KEY" {
+if block == nil || block.Type != "RSA PRIVATE KEY" {
         log.Fatal("No valid PEM data found")
     }
  private_key, err = x509.ParsePKCS1PrivateKey(block.Bytes)
@@ -109,11 +110,12 @@ log.Fatalf("Private key can't be decoded: %s", err)
 
 encryptedFileName = "/Users/russclousing/214/text/ " + product + ".txt"
 
-
 encrypted, err = ioutil.ReadFile(encryptedFileName)
 if err != nil{
 log.Fatalf("error in reading encrypted data: %s", err) 
 }
+fmt.Printf(string(encrypted))
+encrypted = bytes.Trim(encrypted, "\x00")
 
 decrypted = decrypt_oaep(private_key, encrypted, label)
 password = string(decrypted)
@@ -135,11 +137,13 @@ func check(e error){
 			Output: THis returns a string of numerals that is the encrypted string*/
 			
 func encryption(password string, product string)(encrypted []byte){ 
+	//initiating variables
 	var private_key *rsa.PrivateKey
 	var public_key *rsa.PublicKey
 	var err error
 	var plain_text, label []byte
 	var filename string
+	//converting product and password to byte arrays from strings
 	plain_text = []byte(password)
 	label = []byte(product)
 	
@@ -148,27 +152,33 @@ func encryption(password string, product string)(encrypted []byte){
         log.Fatal(err)
     }
 
-    // Precompute some calculations -- Calculations that speed up private key operations in the future
+    // Precompute some calculations 
     private_key.Precompute()
 
-    //Validate Private Key -- Sanity checks on the key
+    //Validate Private Key 
     if err = private_key.Validate(); err != nil {
         log.Fatal(err)
     }
 
-    //Public key address (of an RSA key)
+    //Public key address 
     public_key = &private_key.PublicKey
 
     encrypted = encrypt_oaep(public_key, plain_text, label)
+    decrypted := decrypt_oaep(private_key, encrypted, label)
 
 	filename = product + ".pub"
 
 	pemData := pem.EncodeToMemory(&pem.Block{
-    		Type:  "RSA PUBLIC KEY",
+    		Type:  "RSA PRIVATE KEY",
     		Bytes: x509.MarshalPKCS1PrivateKey(private_key),
 	})
-	
+	//here for testing to be able to see output ERASE BEFORE HANDING IN
+	fmt.Printf("OAEP Encrypted [%s] to \n[%x]\n", string(plain_text), encrypted)
+    fmt.Printf("OAEP Decrypted [%x] to \n[%s]\n", encrypted, decrypted)
+   	fmt.Printf(string(encrypted))
+
 	ioutil.WriteFile(filename, pemData, 0644)
+
 
 	return
 }
@@ -193,9 +203,11 @@ func encrypt_oaep(public_key *rsa.PublicKey, plain_text, label []byte) (encrypte
 func decrypt_oaep(private_key *rsa.PrivateKey, encrypted, label []byte) (decrypted []byte) {
     var err error
     var md5_hash hash.Hash
-
+    
+    
     md5_hash = md5.New()
-    if decrypted, err = rsa.DecryptOAEP(md5_hash, rand.Reader, private_key, encrypted, label); err != nil {
+    decrypted, err = rsa.DecryptOAEP(md5_hash, rand.Reader, private_key, encrypted, label)
+    if err != nil {
         log.Fatalf("failed in decrypt_oaep: %s", err)
     }
     return
