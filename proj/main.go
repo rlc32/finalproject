@@ -55,7 +55,7 @@ func addpass(){
 	//gets the password that should be encrypted
 	fmt.Scanf("%s", &password)
 	encPassword = encryption(password, productName)
-	filename = "/Users/russclousing/214/text/" + productName + ".txt"
+	filename = "/Users/username/214/text/" + productName + ".txt"
 	ioutil.WriteFile(filename, encPassword, 0644)
 
 	
@@ -104,7 +104,7 @@ log.Fatalf("Private key can't be decoded: %s", err)
     }
 
 //location of the encrypted password
-encryptedFileName = "/Users/russclousing/214/text/" + product + ".txt"
+encryptedFileName = "/Users/username/214/text/" + product + ".txt"
 // reads in the contents of the file
 encrypted, err = ioutil.ReadFile(encryptedFileName)
 // checks for errors in reading in the file
