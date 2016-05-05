@@ -10,24 +10,43 @@ import (
 	"io/ioutil"
 	"encoding/pem"
 	)
+
 func main(){
 var repeat bool
 repeat = true
 var answer string
 str1 := "Welcome to a second class password keeper!\nDo you want to add a password or see a password?\n"
-str2 := "Please enter the word 'add' to add a new password or enter 'see' to see a password\n or enter 'exit' to exit:\n"
+str2 := "Please enter the word 'add' to add a new password or enter 'see' to see a password\n or enter 'exit' to exit the program. Enter 'help' for more options:\n"
+str3 := "Would you like to perform another action or exit the program"
 fmt.Printf(str1)
 
-	for repeat == true {
-		fmt.Scanf("%s", &answer)
-		if answer == "add"{
-			addpass()
-		break
+	for repeat == true {																// this if block steers the program to correct actions
+		fmt.Scanf("%s", &answer)														// also provides feedback for incorrect inputs
+		if answer == "add"{																// when incorrect input happens the user is given a warning that
+			addpass()																	// gives them direction to use the help command
+			fmt.Println(str3)
+			continue
+		}
+		if answer == "edit"{
+			edit()
+			fmt.Println(str3)
+			continue
 		}
 		if answer == "see"{
 			seepass()
-		break
+			fmt.Println(str3)
+			continue
 		} 
+		if answer == "list"{
+			listPasswords()
+			fmt.Println(str3)
+			continue
+		}
+		if answer == "help"{
+			goToHelp()
+			fmt.Println(str3)
+			continue
+		}
 		if answer == "exit"{
 		break		
 		}else{
@@ -42,25 +61,41 @@ fmt.Printf(str1)
 /* This function takes no arguments:
 			designed to ask for a website or product to store username and password.
 			stores username in a separate file with key.
-			asks for password and sends it to be encrypted using the key.*/
+			asks for password and sends it to be encrypted using the key.
+			also will ask user if they want to overwrite an existing file if there is an existing file*/
 
 func addpass(){
 	var password, productName, filename string
 	var encPassword []byte
-	
+	var edit bool
+	var editvalue string
+	edit = true
 	fmt.Printf("please enter the name of the product that you want to store: \n")
-	//gets the product name
-	fmt.Scanf("%s", &productName)
+	fmt.Scanf("%s", &productName)																//gets the product name
+	files, err := ioutil.ReadDir("/Users/russclousing/214/text")								//reads in all files in directory
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {																//for loop to make sure that user is not overwriting
+		fileNoExt := file.Name()[:len(file.Name())-4]											// an already declared password unintentianaly
+		if productName == fileNoExt{
+			fmt.Printf("There already exists a password for %s.\n", productName)				// warning issued
+			fmt.Println("Would you like to overwrite the existing password?")
+			fmt.Scanf("%s", &editvalue)															// gets decision
+			if editvalue == "no" || editvalue == "n"{											// if answer is no then skip rest of function
+				edit = false
+			}
+		}
+
+	}
+	if edit == true {																			// if answer yes then adds password anyways
 	fmt.Printf("Please enter the password for %s: \n", productName)
 	//gets the password that should be encrypted
-	fmt.Scanf("%s", &password)
-	encPassword = encryption(password, productName)
-	filename = "/Users/russclousing/214/text/" + productName + ".txt"
-	ioutil.WriteFile(filename, encPassword, 0644)
-
-	
-    
-	
+	fmt.Scanf("%s", &password)																	//gets password to update 
+	encPassword = encryption(password, productName)												//sends password to be encrypted
+	filename = "/Users/russclousing/214/text/" + productName + ".txt"							//file name for saving the password after encryption
+	ioutil.WriteFile(filename, encPassword, 0644)												// write to file
+	}
 }
 
 
@@ -70,11 +105,11 @@ func addpass(){
 			uses key to decrypt the password stored in separate file*/
 
 func seepass(){
-productName := ""
-fmt.Printf("please enter the name of the product that you want to see: \n")
-fmt.Scanf("%s", &productName)
-password := decryption(productName)
-fmt.Printf("The password for [%s] is [%s].\n", productName, password)
+	var productName string
+	fmt.Printf("please enter the name of the product that you want to see: \n")
+	fmt.Scanf("%s", &productName)																// gets product name
+	password := decryption(productName)															// gets decrypted password
+	fmt.Printf("The password for [%s] is [%s].\n", productName, password)						// prints password
 }
 
 
@@ -86,48 +121,40 @@ fmt.Printf("The password for [%s] is [%s].\n", productName, password)
 							the key and encrypted password are then sent to be decrypted in the OAEP_decryption function
 							returns unencrypted password*/
 func decryption(product string)(password string){
-var private_key *rsa.PrivateKey
-var pem_data, encrypted, decrypted, label []byte
-var pem_file_path, encryptedFileName string
-var err error
-var block *pem.Block
+	var private_key *rsa.PrivateKey
+	var pem_data, encrypted, decrypted, label []byte
+	var pem_file_path, encryptedFileName string
+	var err error
+	var block *pem.Block
 
-label = []byte(product)
-
-//setting the file name of the private key and loading the private key from memory
-pem_file_path = product + ".pub"
-pem_data, err = ioutil.ReadFile(pem_file_path)
- //checks to make sure key is loaded right
-if err != nil {
-        log.Fatalf("Error reading pem file: %s", err)
+	label = []byte(product)																//sets
+												
+	pem_file_path = product + ".pub"						//setting the file name of the private key and loading the private key from memory
+	pem_data, err = ioutil.ReadFile(pem_file_path)
+							
+		if err != nil {																	 //checks to make sure key is loaded right
+	        log.Fatalf("Error reading pem file: %s", err)
     }
-    block, _ = pem.Decode(pem_data)
+    block, _ = pem.Decode(pem_data)														//populates block with []byte from pem file
     
-if block == nil || block.Type != "RSA PRIVATE KEY" {
+	if block == nil || block.Type != "RSA PRIVATE KEY" {
         log.Fatal("No valid PEM data found")
     }
- private_key, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+    
+	 private_key, err = x509.ParsePKCS1PrivateKey(block.Bytes) 							//creating RSA key from the bytes in block
 
-if err != nil{
-log.Fatalf("Private key can't be decoded: %s", err)
+	if err != nil{
+	log.Fatalf("Private key can't be decoded: %s", err)
     }
 
-//location of the encrypted password
-encryptedFileName = "/Users/russclousing/214/text/" + product + ".txt"
-// reads in the contents of the file
-encrypted, err = ioutil.ReadFile(encryptedFileName)
-// checks for errors in reading in the file
-if err != nil {
+	encryptedFileName = "/Users/russclousing/214/text/" + product + ".txt"				//location of the encrypted password
+	encrypted, err = ioutil.ReadFile(encryptedFileName)   								// reads in the contents of the file
+	if err != nil {																		// checks for errors in reading in the file
         log.Fatalf("Error reading in the password: %s", err)
     }
 
-
-//calls the decrypt_oaep function to decrypt the encrypted passwords
-decrypted = decrypt_oaep(private_key, encrypted, label)
-
-password = string(decrypted)
-
-
+	decrypted = decrypt_oaep(private_key, encrypted, label)								//calls the decrypt_oaep function to decrypt the encrypted passwords
+	password = string(decrypted)
 return
 }
 
@@ -155,13 +182,12 @@ func encryption(password string, product string)(encrypted []byte){
 	plain_text = []byte(password)
 	label = []byte(product)
 	
-	//Generate the Private Key
-    if private_key, err = rsa.GenerateKey(rand.Reader, 1024); err != nil {
+    if private_key, err = rsa.GenerateKey(rand.Reader, 1024); err != nil {				//Generate the Private Key
         log.Fatal(err)
     }
 
-    // Precompute some calculations 
-    private_key.Precompute()
+
+    private_key.Precompute()    														// Precompute some calculations. speeds up future runtime
 
     //Validate Private Key 
     if err = private_key.Validate(); err != nil {
@@ -169,24 +195,19 @@ func encryption(password string, product string)(encrypted []byte){
     }
 
     //Public key address 
-    public_key = &private_key.PublicKey
+    public_key = &private_key.public_key												//gets public key from inside the private key struct
 
-    encrypted = encrypt_oaep(public_key, plain_text, label)
+    encrypted = encrypt_oaep(public_key, plain_text, label)								//sends to OAEP encryption
     
     //gets file name for key location
 	filename = product + ".pub"
 
-	pemData := pem.EncodeToMemory(&pem.Block{
+	pemData := pem.EncodeToMemory(&pem.Block{											//Sets up the information for 
     		Type:  "RSA PRIVATE KEY",
     		Bytes: x509.MarshalPKCS1PrivateKey(private_key),
 	})
-	ioutil.WriteFile(filename, pemData, 0644)
-	fmt.Printf("OAEP Encrypted [%s] to \n[%x]\n", string(plain_text), encrypted)
-	
-
-
-
-
+	ioutil.WriteFile(filename, pemData, 0644)											//stores private key in a PEM file
+	fmt.Printf("OAEP Encrypted the password and stored correctly")			
 
 	return
 }
@@ -194,36 +215,96 @@ func encryption(password string, product string)(encrypted []byte){
 
 
 //Code used from http://blog.giorgis.io/golang-rsa-encryption
-//OAEP Encrypt
+//OAEP Encrypt. Optimal Asymetric Encryptoin Padding
 func encrypt_oaep(public_key *rsa.PublicKey, plain_text, label []byte) (encrypted []byte) {
     var err error
     var md5_hash hash.Hash
 
     md5_hash = md5.New()
 
-    if encrypted, err = rsa.EncryptOAEP(md5_hash, rand.Reader, public_key, plain_text, label); err != nil {
+    if encrypted, err = rsa.EncryptOAEP(md5_hash, rand.Reader, public_key, plain_text, label); err != nil {	//encrypts using OAEP encryptino
         log.Fatal(err)
     }
     return
 }
 //Code used from http://blog.giorgis.io/golang-rsa-encryption
-//OAEP Decryption
+//OAEP Decryption. Optimal Asymetric Encryptoin Padding
 func decrypt_oaep(private_key *rsa.PrivateKey, encrypted, label []byte) (decrypted []byte) {
     var err error
     var md5_hash hash.Hash
     
     
-    md5_hash = md5.New()
-    decrypted, err = rsa.DecryptOAEP(md5_hash, rand.Reader, private_key, encrypted, label)
+    md5_hash = md5.New()																	
+    decrypted, err = rsa.DecryptOAEP(md5_hash, rand.Reader, private_key, encrypted, label)	//decrypts the password using OEAP encryption
     if err != nil {
         log.Fatalf("failed in decrypt_oaep: %s", err)
     }
     return
 }
 
+/*This function takes no arguments;
+						This function lists all of the files that are holding passwords
+						Does not show files that start with a '.'
+						removes file extensions */
+func listPasswords(){
+	var fileNoExt string
+	fmt.Println("Here is a list of all the products that have passwords stored")	
+	files, err := ioutil.ReadDir("/Users/russclousing/214/text")				// creates list of all files in the specified directory
+	if err != nil {
+		log.Fatal(err)
+	}
+for _, file := range files {													//iterates through list of files
+	if file.Name()[:1] == "."{													// ignores files that start with '.'
+		continue
+	}
+	fileNoExt = file.Name()[:len(file.Name())-4]								//removes file extension
+	fmt.Println(fileNoExt)														// prints the file name without extension
+	
+	}
+}
+/*This function prints out the help documentations:
+							list functions and rules for using the program */
+func goToHelp(){
+	file_contents, err := ioutil.ReadFile("helpDoc.txt") 						//reads in help doc file
+	if err != nil {
+		log.Fatalf("Failed to read file!")
+	}
+	fmt.Printf(string(file_contents))											//prints out file contents to console
+}
+/*This function allows the user to replace a password for a product.
+							also will check if the password exists in the system.
+							if no password exists that matches the product then a warning is issued.
+							if a password exists that matches the product then a new password is asked for
+							and it is encrypted using a new RSA key and stored */
+func edit(){
+	var password, productName, filename string
+	var encPassword []byte
+	var editvalue 	bool
+	editvalue = false
 
+	fmt.Printf("please enter the name of the product that you want to edit: \n")
+	fmt.Scanf("%s", &productName)												//gets the product name
+	files, err := ioutil.ReadDir("/Users/russclousing/214/text")				//reads in all files in the directory
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {												// iterates through the list of files
+		fileNoExt := file.Name()[:len(file.Name())-4]							// removes file extension
+		if productName == fileNoExt{											// checks to find if product is already in directory
+			editvalue = true													
+			break
+		}
+	}
 
-
-
-
+	if editvalue == true{														//this if statment will allow editing if the product is found
+		fmt.Printf("Please enter the new password for %s: \n", productName)		// gets new password
+		fmt.Scanf("%s", &password)												//gets the password that should be encrypted
+		encPassword = encryption(password, productName)							// encrypts the password
+		filename = "/Users/russclousing/214/text/" + productName + ".txt"		
+		ioutil.WriteFile(filename, encPassword, 0644)							//stores password
+	}
+	if editvalue == false{														//this if activates if product is not found
+		fmt.Println("The product you tried does not exist. Please add the product before trying to edit")	// warning issued in this case
+	}
+}
 

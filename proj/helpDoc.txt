@@ -1,0 +1,15 @@
+Welcome to the Help section for Password Keeper.
+
+Rules for using the password keeper:
+1. no whitespace in passwords or product names: Use underscores instead
+2. do not start any product name with '.': will not show up when using list
+3. all commands are ALWAYS lowercase.
+4. products and passwords are case sensitive
+
+Here is a list of acceptable inputs for Password Keeper:
+add - This command adds a new password to program.
+see - This command lets the user see a password that has been stored.
+list - This command lists the passwords that are able to be seen.
+exit - This command exits the password keeper.
+help - This command brings the user to the help section.
+edit - This command will allow changing of the password
