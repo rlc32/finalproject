@@ -6,8 +6,7 @@ import (
 	"log"
     "crypto/md5"
     "crypto/x509"
-    "bytes"
-	"hash"
+  	"hash"
 	"io/ioutil"
 	"encoding/pem"
 	)
@@ -48,6 +47,7 @@ fmt.Printf(str1)
 func addpass(){
 	var password, productName, filename string
 	var encPassword []byte
+	
 	fmt.Printf("please enter the name of the product that you want to store: \n")
 	//gets the product name
 	fmt.Scanf("%s", &productName)
@@ -59,12 +59,14 @@ func addpass(){
 	ioutil.WriteFile(filename, encPassword, 0644)
 
 	
+    
+	
 }
 
 
 /*This function takes no arguments:
 			designed to ask for a website or product to return the password
-			retrieves the username and key from file
+			retrieves thekey from a PEM file
 			uses key to decrypt the password stored in separate file*/
 
 func seepass(){
@@ -72,19 +74,26 @@ productName := ""
 fmt.Printf("please enter the name of the product that you want to see: \n")
 fmt.Scanf("%s", &productName)
 password := decryption(productName)
-fmt.Printf(password)
+fmt.Printf("The password for [%s] is [%s].\n", productName, password)
 }
 
 
 
 
-//this is the function that takes a encrypted password and returns a unencrypted password
+/*this is the function that takes a product and returns the password unencrypted
+							the function finds the correct private key and reads in the key
+							the function then finds the file that holds teh encrypted version of the password
+							the key and encrypted password are then sent to be decrypted in the OAEP_decryption function
+							returns unencrypted password*/
 func decryption(product string)(password string){
 var private_key *rsa.PrivateKey
 var pem_data, encrypted, decrypted, label []byte
 var pem_file_path, encryptedFileName string
 var err error
 var block *pem.Block
+
+label = []byte(product)
+
 //setting the file name of the private key and loading the private key from memory
 pem_file_path = product + ".pub"
 pem_data, err = ioutil.ReadFile(pem_file_path)
@@ -108,18 +117,16 @@ encryptedFileName = "/Users/russclousing/214/text/" + product + ".txt"
 // reads in the contents of the file
 encrypted, err = ioutil.ReadFile(encryptedFileName)
 // checks for errors in reading in the file
-if err != nil{
-log.Fatalf("error in reading encrypted data: %s", err) 
-}
+if err != nil {
+        log.Fatalf("Error reading in the password: %s", err)
+    }
 
-fmt.Printf("encrypted version is %x\n", encrypted)
-encrypted = bytes.Trim(encrypted, "\r")
-encrypted = bytes.Trim(encrypted, "\n")
-encrypted = bytes.TrimSpace(encrypted)
+
 //calls the decrypt_oaep function to decrypt the encrypted passwords
 decrypted = decrypt_oaep(private_key, encrypted, label)
 
 password = string(decrypted)
+
 
 return
 }
@@ -166,7 +173,7 @@ func encryption(password string, product string)(encrypted []byte){
 
     encrypted = encrypt_oaep(public_key, plain_text, label)
     
-
+    //gets file name for key location
 	filename = product + ".pub"
 
 	pemData := pem.EncodeToMemory(&pem.Block{
