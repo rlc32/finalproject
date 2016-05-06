@@ -12,4 +12,5 @@ see - This command lets the user see a password that has been stored.
 list - This command lists the passwords that are able to be seen.
 exit - This command exits the password keeper.
 help - This command brings the user to the help section.
-edit - This command will allow changing of the password
+edit - This command will allow changing of the password that is currently stored for the selected product
+remove - This command will remove all files associated with the password of the selected product

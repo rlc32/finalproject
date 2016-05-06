@@ -1,3 +1,19 @@
+/************************************************************************************************************
+ * This is a GoLang password keeper. It is a command line application.										*
+ * The password keeper utilizes OEAP encryption to securily store the passwords 							*
+ * OEAP is Opitmal Asymetric Encryptinon Padding. This is a form of RSA Encryption 							*
+ * with padding. The password keeper the offers the ability to add, see, edit, list, and remove passwords.	*
+ * also if the command help is entered it will give the user some helpful hints about the program.			*
+ * Created By: Russell Clousing																				*
+ * Created On: May 5, 2016																					*
+ ************************************************************************************************************/
+
+
+
+
+
+
+
 package main
 import (
 	"fmt"
@@ -9,13 +25,14 @@ import (
   	"hash"
 	"io/ioutil"
 	"encoding/pem"
+	"os"
 	)
 
 func main(){
 var repeat bool
 repeat = true
 var answer string
-str1 := "Welcome to a second class password keeper!\nDo you want to add a password or see a password?\n"
+str1 := "Welcome to password keeper!\nDo you want to add a password or see a password?\n"
 str2 := "Please enter the word 'add' to add a new password or enter 'see' to see a password\n or enter 'exit' to exit the program. Enter 'help' for more options:\n"
 str3 := "Would you like to perform another action or exit the program"
 fmt.Printf(str1)
@@ -44,6 +61,11 @@ fmt.Printf(str1)
 		}
 		if answer == "help"{
 			goToHelp()
+			fmt.Println(str3)
+			continue
+		}
+		if answer == "remove"{
+			removePass()
 			fmt.Println(str3)
 			continue
 		}
@@ -195,7 +217,7 @@ func encryption(password string, product string)(encrypted []byte){
     }
 
     //Public key address 
-    public_key = &private_key.public_key												//gets public key from inside the private key struct
+    public_key = &private_key.PublicKey													//gets public key from inside the private key struct
 
     encrypted = encrypt_oaep(public_key, plain_text, label)								//sends to OAEP encryption
     
@@ -207,7 +229,7 @@ func encryption(password string, product string)(encrypted []byte){
     		Bytes: x509.MarshalPKCS1PrivateKey(private_key),
 	})
 	ioutil.WriteFile(filename, pemData, 0644)											//stores private key in a PEM file
-	fmt.Printf("OAEP Encrypted the password and stored correctly")			
+	fmt.Println("Password was succesfully encrypted and stored")			
 
 	return
 }
@@ -308,3 +330,34 @@ func edit(){
 	}
 }
 
+
+
+func removePass(){
+	var isfile bool
+	var textFileName, keyFileName, confirmation, productName string
+	isfile = false
+	fmt.Printf("please enter the name of the product that you want to remove: \n")
+	fmt.Scanf("%s", &productName)												//gets the product name
+	files, err := ioutil.ReadDir("/Users/russclousing/214/text")				//reads in all files in the directory
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {												// iterates through the list of files
+		fileNoExt := file.Name()[:len(file.Name())-4]							// removes file extension
+		if productName == fileNoExt{											// checks to find if product is already in directory
+			isfile = true													
+			break
+		}
+	}
+	if isfile == true{
+		fmt.Printf("Are you sure that you want to remove this password?\nThis action cannot be undone.\n")
+		fmt.Scanf("%s", &confirmation)
+		if confirmation == "yes" || confirmation == "y"{
+			textFileName = "/Users/russclousing/214/text/" + productName + ".txt"	//sets file name location
+			keyFileName = productName + ".pub"		
+			os.Remove(textFileName)													// removes the file containing the password 
+			os.Remove(keyFileName)													// removes the file containing the RSA key associated with the password
+			fmt.Println("Password succesfully removed")
+		}else{fmt.Println("Remove canceled.")}										// confirmation that remove action canceled
+	}else{fmt.Println("The password that you attempted to remove does not exist")}	// Warning that the file does not exist
+}
